@@ -6,7 +6,7 @@
     <application
         android:allowBackup="true"
         android:label="Istiraha"
-        android:theme="@style/Theme.Istiraha"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="true">
 
         <activity
