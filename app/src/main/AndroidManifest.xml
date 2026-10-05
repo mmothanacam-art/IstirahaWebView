@@ -12,6 +12,11 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <activity
+            android:name=".DownloadActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
