@@ -1,17 +1,16 @@
 package com.istiraha.app
 
 import android.annotation.SuppressLint
-import android.app.DownloadManager
-import android.content.Context
+import android.app.AlertDialog
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -32,10 +31,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // الحاوية الرئيسية
         rootContainer = FrameLayout(this)
-
-        // إنشاء WebView
         webView = WebView(this)
 
         rootContainer.addView(
@@ -48,29 +44,31 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(rootContainer)
 
-        // إعدادات WebView
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
-
             allowFileAccess = true
             allowContentAccess = true
-
             loadWithOverviewMode = true
             useWideViewPort = true
-
             cacheMode = WebSettings.LOAD_DEFAULT
-
             javaScriptCanOpenWindowsAutomatically = true
             mediaPlaybackRequiresUserGesture = false
-
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
-        webView.webViewClient = WebViewClient()
+        webView.webViewClient = object : WebViewClient() {
 
-        // دعم الفيديو Full Screen
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                return false
+            }
+        }
+
+        // Fullscreen video
         webView.webChromeClient = object : WebChromeClient() {
 
             override fun onShowCustomView(
@@ -90,10 +88,8 @@ class MainActivity : AppCompatActivity() {
                 customView = view
                 customViewCallback = callback
 
-                // إخفاء WebView أثناء ملء الشاشة
                 webView.visibility = View.GONE
 
-                // إضافة مشغل الفيديو فوق WebView
                 rootContainer.addView(
                     view,
                     FrameLayout.LayoutParams(
@@ -102,7 +98,6 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-                // تحويل الشاشة إلى الوضع الأفقي
                 requestedOrientation =
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
@@ -114,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // تنزيل الصور والفيديوهات والملفات
+        // اعتراض أي تنزيل صادر من الموقع
         webView.setDownloadListener {
                 url,
                 userAgent,
@@ -122,85 +117,81 @@ class MainActivity : AppCompatActivity() {
                 mimeType,
                 _ ->
 
-            try {
-                val request = DownloadManager.Request(Uri.parse(url))
-
-                val cookies =
-                    CookieManager.getInstance().getCookie(url)
-
-                if (!cookies.isNullOrEmpty()) {
-                    request.addRequestHeader("Cookie", cookies)
-                }
-
-                if (!userAgent.isNullOrEmpty()) {
-                    request.addRequestHeader("User-Agent", userAgent)
-                }
-
-                val fileName = URLUtil.guessFileName(
-                    url,
-                    contentDisposition,
-                    mimeType
-                )
-
-                request.setTitle(fileName)
-                request.setDescription("جاري تنزيل الملف...")
-
-                request.setNotificationVisibility(
-                    DownloadManager.Request
-                        .VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-                )
-
-                request.setDestinationInExternalPublicDir(
-                    Environment.DIRECTORY_DOWNLOADS,
-                    fileName
-                )
-
-                if (!mimeType.isNullOrEmpty()) {
-                    request.setMimeType(mimeType)
-                }
-
-                val downloadManager =
-                    getSystemService(Context.DOWNLOAD_SERVICE)
-                            as DownloadManager
-
-                downloadManager.enqueue(request)
-
+            if (url.isNullOrBlank()) {
                 Toast.makeText(
                     this,
-                    "بدأ تنزيل: $fileName",
+                    "رابط التنزيل غير صالح",
                     Toast.LENGTH_LONG
                 ).show()
-
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this,
-                    "تعذر تنزيل الملف: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                return@setDownloadListener
             }
+
+            // blob يحتاج معالجة مختلفة
+            if (url.startsWith("blob:", ignoreCase = true)) {
+                AlertDialog.Builder(this)
+                    .setTitle("رابط فيديو مؤقت")
+                    .setMessage(
+                        "هذا الملف يستخدم رابط Blob داخل صفحة الويب، " +
+                        "ولا يمكن تنزيله كملف HTTP مباشر بهذه الطريقة."
+                    )
+                    .setPositiveButton("حسنًا", null)
+                    .show()
+
+                return@setDownloadListener
+            }
+
+            if (!url.startsWith("http://", true) &&
+                !url.startsWith("https://", true)
+            ) {
+                Toast.makeText(
+                    this,
+                    "نوع رابط التنزيل غير مدعوم: ${Uri.parse(url).scheme}",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                return@setDownloadListener
+            }
+
+            val fileName = URLUtil.guessFileName(
+                url,
+                contentDisposition,
+                mimeType
+            )
+
+            val cookies =
+                CookieManager.getInstance().getCookie(url) ?: ""
+
+            val referer =
+                webView.url ?: "http://e7.net:888/"
+
+            DownloadActivity.start(
+                context = this,
+                url = url,
+                fileName = fileName,
+                mimeType = mimeType ?: "application/octet-stream",
+                userAgent = userAgent ?: webView.settings.userAgentString,
+                cookies = cookies,
+                referer = referer
+            )
         }
 
-        // فتح الموقع
         if (savedInstanceState == null) {
             webView.loadUrl("http://e7.net:888/")
         } else {
             webView.restoreState(savedInstanceState)
         }
 
-        // زر الرجوع
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
 
                 override fun handleOnBackPressed() {
 
-                    // إذا كان الفيديو Full Screen
                     if (customView != null) {
                         exitFullScreen()
                         return
                     }
 
-                    // الرجوع داخل الموقع
                     if (webView.canGoBack()) {
                         webView.goBack()
                     } else {
@@ -211,7 +202,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // إخفاء أشرطة النظام أثناء الفيديو
     @Suppress("DEPRECATION")
     private fun hideSystemUI() {
         window.decorView.systemUiVisibility =
@@ -223,7 +213,6 @@ class MainActivity : AppCompatActivity() {
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
-    // الخروج من Full Screen
     @Suppress("DEPRECATION")
     private fun exitFullScreen() {
 
@@ -238,11 +227,9 @@ class MainActivity : AppCompatActivity() {
 
         webView.visibility = View.VISIBLE
 
-        // العودة للوضع العمودي
         requestedOrientation =
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
 
-        // إعادة أشرطة النظام
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_VISIBLE
     }
