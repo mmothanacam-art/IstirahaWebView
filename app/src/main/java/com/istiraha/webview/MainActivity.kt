@@ -114,76 +114,39 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // تنزيل الصور والفيديوهات والملفات
-        webView.setDownloadListener {
-                url,
-                userAgent,
-                contentDisposition,
-                mimeType,
-                _ ->
+  // تنزيل الصور والفيديوهات والملفات
+webView.setDownloadListener {
+        url,
+        userAgent,
+        contentDisposition,
+        mimeType,
+        _ ->
 
-try {
-                val request = DownloadManager.Request(Uri.parse(url))
+    val cookies =
+        CookieManager.getInstance().getCookie(url)
 
-                val cookies =
-                    CookieManager.getInstance().getCookie(url)
+    val fileName = URLUtil.guessFileName(
+        url,
+        contentDisposition,
+        mimeType
+    )
 
-                if (!cookies.isNullOrEmpty()) {
-                    request.addRequestHeader("Cookie", cookies)
-                }
+    val referer = webView.url
 
-                if (!userAgent.isNullOrEmpty()) {
-                    request.addRequestHeader("User-Agent", userAgent)
-                }
+    val intent = android.content.Intent(
+        this,
+        DownloadActivity::class.java
+    ).apply {
+        putExtra("url", url)
+        putExtra("fileName", fileName)
+        putExtra("mimeType", mimeType)
+        putExtra("userAgent", userAgent)
+        putExtra("cookies", cookies)
+        putExtra("referer", referer)
+    }
 
-                val fileName = URLUtil.guessFileName(
-                    url,
-                    contentDisposition,
-                    mimeType
-                )
-
-                request.setTitle(fileName)
-                request.setDescription("جاري تنزيل الملف...")
-
-                request.setNotificationVisibility(
-                    DownloadManager.Request
-                        .VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-                )
-
-                request.setDestinationInExternalPublicDir(
-                    Environment.DIRECTORY_DOWNLOADS,
-                    fileName
-                )
-
-                if (!mimeType.isNullOrEmpty()) {
-                    request.setMimeType(mimeType)
-                }
-
-              val referer = webView.url
-if (!referer.isNullOrEmpty()) {
-    request.addRequestHeader("Referer", referer)
-}  
-    val downloadManager =
-                    getSystemService(Context.DOWNLOAD_SERVICE)
-                            as DownloadManager
-
-                downloadManager.enqueue(request)
-
-                Toast.makeText(
-                    this,
-                    "بدأ تنزيل: $fileName",
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this,
-                    "تعذر تنزيل الملف: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-
+    startActivity(intent)
+}
         // فتح الموقع
         if (savedInstanceState == null) {
             webView.loadUrl("http://e7.net:888/")
