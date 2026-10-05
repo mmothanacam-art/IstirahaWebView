@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         // الحاوية الرئيسية
         rootContainer = FrameLayout(this)
 
-        // WebView
+        // إنشاء WebView
         webView = WebView(this)
 
         rootContainer.addView(
@@ -70,20 +70,18 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = WebViewClient()
 
-        // دعم الفيديو بملء الشاشة
+        // دعم الفيديو Full Screen
         webView.webChromeClient = object : WebChromeClient() {
 
             override fun onShowCustomView(
                 view: View?,
                 callback: CustomViewCallback?
             ) {
-
                 if (view == null) {
                     callback?.onCustomViewHidden()
                     return
                 }
 
-                // إذا كان Fullscreen مفتوحًا بالفعل
                 if (customView != null) {
                     callback?.onCustomViewHidden()
                     return
@@ -92,23 +90,22 @@ class MainActivity : AppCompatActivity() {
                 customView = view
                 customViewCallback = callback
 
-                // إخفاء صفحة الموقع مؤقتًا
+                // إخفاء WebView أثناء ملء الشاشة
                 webView.visibility = View.GONE
 
-                // إضافة الفيديو إلى الشاشة كاملة
+                // إضافة مشغل الفيديو فوق WebView
                 rootContainer.addView(
-                    customView,
+                    view,
                     FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
                 )
 
-                // الوضع الأفقي
+                // تحويل الشاشة إلى الوضع الأفقي
                 requestedOrientation =
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
-                // إخفاء شريط الحالة والتنقل
                 hideSystemUI()
             }
 
@@ -117,7 +114,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // دعم تنزيل الصور والفيديوهات والملفات
+        // تنزيل الصور والفيديوهات والملفات
         webView.setDownloadListener {
                 url,
                 userAgent,
@@ -126,38 +123,27 @@ class MainActivity : AppCompatActivity() {
                 _ ->
 
             try {
-
                 val request = DownloadManager.Request(Uri.parse(url))
 
                 val cookies =
                     CookieManager.getInstance().getCookie(url)
 
                 if (!cookies.isNullOrEmpty()) {
-                    request.addRequestHeader(
-                        "Cookie",
-                        cookies
-                    )
+                    request.addRequestHeader("Cookie", cookies)
                 }
 
                 if (!userAgent.isNullOrEmpty()) {
-                    request.addRequestHeader(
-                        "User-Agent",
-                        userAgent
-                    )
+                    request.addRequestHeader("User-Agent", userAgent)
                 }
 
-                val fileName =
-                    URLUtil.guessFileName(
-                        url,
-                        contentDisposition,
-                        mimeType
-                    )
+                val fileName = URLUtil.guessFileName(
+                    url,
+                    contentDisposition,
+                    mimeType
+                )
 
                 request.setTitle(fileName)
-
-                request.setDescription(
-                    "جاري تنزيل الملف..."
-                )
+                request.setDescription("جاري تنزيل الملف...")
 
                 request.setNotificationVisibility(
                     DownloadManager.Request
@@ -170,47 +156,4 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 if (!mimeType.isNullOrEmpty()) {
-                    request.setMimeType(mimeType)
-                }
-
-                val downloadManager =
-                    getSystemService(
-                        Context.DOWNLOAD_SERVICE
-                    ) as DownloadManager
-
-                downloadManager.enqueue(request)
-
-                Toast.makeText(
-                    this,
-                    "بدأ تنزيل: $fileName",
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } catch (e: Exception) {
-
-                Toast.makeText(
-                    this,
-                    "تعذر تنزيل الملف: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-
-        // فتح الموقع
-        if (savedInstanceState == null) {
-
-            webView.loadUrl(
-                "http://e7.net:888/"
-            )
-
-        } else {
-
-            webView.restoreState(
-                savedInstanceState
-            )
-        }
-
-        // زر الرجوع
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : OnBackPressed
+                    request
