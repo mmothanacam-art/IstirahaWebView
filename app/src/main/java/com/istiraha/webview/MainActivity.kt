@@ -123,14 +123,6 @@ class MainActivity : AppCompatActivity() {
                 _ ->
 
             Toast.makeText(
-    this,
-    "الرابط: $url",
-    Toast.LENGTH_LONG
-).show()
-val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-clipboard.setPrimaryClip(
-    android.content.ClipData.newPlainText("Download URL", url)
-)
 try {
                 val request = DownloadManager.Request(Uri.parse(url))
 
