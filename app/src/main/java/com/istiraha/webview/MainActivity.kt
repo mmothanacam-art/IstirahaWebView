@@ -168,7 +168,11 @@ try {
                     request.setMimeType(mimeType)
                 }
 
-                val downloadManager =
+              val referer = webView.url
+if (!referer.isNullOrEmpty()) {
+    request.addRequestHeader("Referer", referer)
+}  
+    val downloadManager =
                     getSystemService(Context.DOWNLOAD_SERVICE)
                             as DownloadManager
 
