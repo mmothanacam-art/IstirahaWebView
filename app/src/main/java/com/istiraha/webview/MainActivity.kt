@@ -122,7 +122,6 @@ class MainActivity : AppCompatActivity() {
                 mimeType,
                 _ ->
 
-            Toast.makeText(
 try {
                 val request = DownloadManager.Request(Uri.parse(url))
 
