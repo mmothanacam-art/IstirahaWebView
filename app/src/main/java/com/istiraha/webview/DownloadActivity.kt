@@ -188,7 +188,8 @@ thread {
         connection?.disconnect()
     }
 }
-private fun formatBytes(bytes: Long): String {
+    }
+    private fun formatBytes(bytes: Long): String {
     if (bytes < 1024) return "$bytes B"
 
     val kb = bytes / 1024.0
@@ -201,4 +202,3 @@ private fun formatBytes(bytes: Long): String {
     return String.format("%.2f GB", gb)
 }
     }
-}
