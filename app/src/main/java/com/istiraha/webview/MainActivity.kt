@@ -156,4 +156,111 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 if (!mimeType.isNullOrEmpty()) {
-                    request
+                    request.setMimeType(mimeType)
+                }
+
+                val downloadManager =
+                    getSystemService(Context.DOWNLOAD_SERVICE)
+                            as DownloadManager
+
+                downloadManager.enqueue(request)
+
+                Toast.makeText(
+                    this,
+                    "بدأ تنزيل: $fileName",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this,
+                    "تعذر تنزيل الملف: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        // فتح الموقع
+        if (savedInstanceState == null) {
+            webView.loadUrl("http://e7.net:888/")
+        } else {
+            webView.restoreState(savedInstanceState)
+        }
+
+        // زر الرجوع
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+
+                override fun handleOnBackPressed() {
+
+                    // إذا كان الفيديو Full Screen
+                    if (customView != null) {
+                        exitFullScreen()
+                        return
+                    }
+
+                    // الرجوع داخل الموقع
+                    if (webView.canGoBack()) {
+                        webView.goBack()
+                    } else {
+                        finish()
+                    }
+                }
+            }
+        )
+    }
+
+    // إخفاء أشرطة النظام أثناء الفيديو
+    @Suppress("DEPRECATION")
+    private fun hideSystemUI() {
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
+
+    // الخروج من Full Screen
+    @Suppress("DEPRECATION")
+    private fun exitFullScreen() {
+
+        val view = customView ?: return
+
+        rootContainer.removeView(view)
+
+        customView = null
+
+        customViewCallback?.onCustomViewHidden()
+        customViewCallback = null
+
+        webView.visibility = View.VISIBLE
+
+        // العودة للوضع العمودي
+        requestedOrientation =
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+
+        // إعادة أشرطة النظام
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_VISIBLE
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        webView.saveState(outState)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+
+        if (customView != null) {
+            exitFullScreen()
+        }
+
+        webView.stopLoading()
+        webView.destroy()
+
+        super.onDestroy()
+    }
+}
