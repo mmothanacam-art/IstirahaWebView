@@ -122,7 +122,13 @@ class MainActivity : AppCompatActivity() {
                 mimeType,
                 _ ->
 
-            try {
+            Toast.makeText(
+    this,
+    "الرابط: $url",
+    Toast.LENGTH_LONG
+).show()
+
+try {
                 val request = DownloadManager.Request(Uri.parse(url))
 
                 val cookies =
