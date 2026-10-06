@@ -109,7 +109,18 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
 
         connection.setRequestProperty("Accept", "*/*")
         connection.setRequestProperty("Accept-Encoding", "identity")
-connection.connect()
+try {
+    connection.connect()
+} catch (e: Exception) {
+    android.os.Handler(android.os.Looper.getMainLooper()).post {
+        android.widget.Toast.makeText(
+            applicationContext,
+            "فشل الاتصال: ${e.javaClass.simpleName} - ${e.message}",
+            android.widget.Toast.LENGTH_LONG
+        ).show()
+    }
+    throw e
+}
         android.os.Handler(android.os.Looper.getMainLooper()).post {
     android.widget.Toast.makeText(
         applicationContext,
