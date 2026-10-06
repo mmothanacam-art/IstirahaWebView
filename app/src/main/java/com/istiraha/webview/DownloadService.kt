@@ -89,7 +89,16 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
     ).show()
        }
         connection = URL(downloadUrl).openConnection() as HttpURLConnection
+val debugNotification = NotificationCompat.Builder(this, CHANNEL_ID)
+    .setSmallIcon(android.R.drawable.stat_sys_download)
+    .setContentTitle(fileName)
+    .setContentText("المرحلة 1: تم إنشاء اتصال التنزيل")
+    .setOngoing(true)
+    .setOnlyAlertOnce(true)
+    .build()
 
+getSystemService(NotificationManager::class.java)
+    .notify(NOTIFICATION_ID, debugNotification)
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20000
         connection.readTimeout = 30000
