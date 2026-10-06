@@ -95,9 +95,14 @@ if (downloadUrl.isNullOrEmpty()) {
 
         connection.setRequestProperty("Accept", "*/*")
         connection.setRequestProperty("Accept-Encoding", "identity")
-
-        connection.connect()
-   android.util.Log.e("IstirahaDownload", "CONNECTED: ${connection.responseCode}")
+connection.connect()
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "كود الخادم: ${connection.responseCode}",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+        }
         val responseCode = connection.responseCode
 android.util.Log.e("IstirahaDownload", "HTTP CODE = $responseCode")
 if (responseCode !in 200..299) {
