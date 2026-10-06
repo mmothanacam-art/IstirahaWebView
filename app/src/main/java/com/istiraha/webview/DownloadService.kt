@@ -96,7 +96,7 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
         android.widget.Toast.LENGTH_LONG
     ).show()
 }
-        connection.requestMethod = "GET"
+        connection.setRequestMethod("GET")
        android.os.Handler(android.os.Looper.getMainLooper()).post {
     android.widget.Toast.makeText(
         applicationContext,
