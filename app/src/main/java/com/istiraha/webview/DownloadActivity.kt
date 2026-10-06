@@ -134,9 +134,18 @@ backButton = Button(this).apply {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         )
-
+layout.addView(
+    backButton,
+    LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    )
+)
         setContentView(layout)
-cancelButton.setOnClickListener {
+backButton.setOnClickListener {
+    finish()
+}
+        cancelButton.setOnClickListener {
     isCancelled = true
     cancelButton.isEnabled = false
     statusText.text = "جاري إلغاء التنزيل..."
