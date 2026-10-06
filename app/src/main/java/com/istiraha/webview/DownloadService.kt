@@ -98,7 +98,7 @@ if (downloadUrl.isNullOrEmpty()) {
 
         connection.connect()
    val responseCode = connection.responseCode
-
+android.util.Log.e("IstirahaDownload", "HTTP CODE = $responseCode")
 if (responseCode !in 200..299) {
     throw Exception("خطأ من الخادم: $responseCode")
 }
@@ -143,7 +143,17 @@ contentResolver.update(fileUri, values, null, null)
 stopForeground(true)
 stopSelf()
     } catch (e: Exception) {
-        stopSelf()
+        android.util.Log.e("IstirahaDownload", "DOWNLOAD ERROR", e)
+
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "خطأ التنزيل: ${e.message}",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
+
+stopSelf()
     } finally {
         connection?.disconnect()
     }
