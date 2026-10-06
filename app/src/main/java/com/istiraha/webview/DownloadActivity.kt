@@ -160,7 +160,41 @@ thread {
 
         val responseCode = connection.responseCode
         val totalBytes = connection.contentLengthLong
+if (responseCode in 200..299) {
+    val input = connection.inputStream
+    val buffer = ByteArray(8192)
+    var downloadedBytes = 0L
+    var count: Int
 
+    while (input.read(buffer).also { count = it } != -1) {
+        downloadedBytes += count
+
+        val currentDownloaded = downloadedBytes
+
+        runOnUiThread {
+            downloadedText.text =
+                "تم تنزيل: ${formatBytes(currentDownloaded)}"
+
+            if (totalBytes > 0) {
+                val remaining =
+                    (totalBytes - currentDownloaded).coerceAtLeast(0)
+
+                val percent =
+                    ((currentDownloaded * 100) / totalBytes)
+                        .toInt()
+                        .coerceIn(0, 100)
+
+                remainingText.text =
+                    "المتبقي: ${formatBytes(remaining)}"
+
+                percentText.text = "التقدم: $percent%"
+                progressBar.progress = percent
+            }
+        }
+    }
+
+    input.close()
+}
         runOnUiThread {
             if (responseCode in 200..299) {
                 statusText.text = "جاهز للتنزيل"
