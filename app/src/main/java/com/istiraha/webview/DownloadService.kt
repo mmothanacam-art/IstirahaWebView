@@ -74,6 +74,13 @@ if (downloadUrl.isNullOrEmpty()) {
     var connection: HttpURLConnection? = null
 
     try {
+       android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "وصلت الخدمة إلى بداية الاتصال",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+       }
         connection = URL(downloadUrl).openConnection() as HttpURLConnection
 
         connection.requestMethod = "GET"
