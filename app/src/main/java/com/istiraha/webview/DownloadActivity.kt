@@ -162,132 +162,21 @@ if (downloadUrl.isNullOrEmpty()) {
     statusText.text = "خطأ: رابط التنزيل غير موجود"
     return
 }
-
-thread {
-    var connection: HttpURLConnection? = null
-
-    try {
-        connection = URL(downloadUrl).openConnection() as HttpURLConnection
-
-        connection.requestMethod = "GET"
-        connection.instanceFollowRedirects = true
-        connection.connectTimeout = 20000
-        connection.readTimeout = 20000
-
-        if (!userAgent.isNullOrEmpty()) {
-            connection.setRequestProperty("User-Agent", userAgent)
-        }
-
-        if (!cookies.isNullOrEmpty()) {
-            connection.setRequestProperty("Cookie", cookies)
-        }
-
-        if (!referer.isNullOrEmpty()) {
-            connection.setRequestProperty("Referer", referer)
-        }
-
-        connection.setRequestProperty("Accept", "*/*")
-        connection.setRequestProperty("Accept-Encoding", "identity")
-
-        connection.connect()
-
-        val responseCode = connection.responseCode
-        val totalBytes = connection.contentLengthLong
-if (responseCode in 200..299) {
-    val input = connection.inputStream
-  val values = ContentValues().apply {
-    put(MediaStore.Downloads.DISPLAY_NAME, fileName ?: "download.mp4")
-    put(MediaStore.Downloads.MIME_TYPE, "video/mp4")
-    put(MediaStore.Downloads.IS_PENDING, 1)
+val serviceIntent = android.content.Intent(
+    this,
+    DownloadService::class.java
+).apply {
+    putExtra("url", downloadUrl)
+    putExtra("userAgent", userAgent)
+    putExtra("cookies", cookies)
+    putExtra("referer", referer)
+    putExtra("fileName", fileName)
 }
 
-val fileUri = contentResolver.insert(
-    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-    values
-) ?: throw Exception("تعذر إنشاء ملف التنزيل")
-
-val output = contentResolver.openOutputStream(fileUri)
-    ?: throw Exception("تعذر فتح ملف التنزيل")
-    val buffer = ByteArray(8192)
-    var downloadedBytes = 0L
-    var count: Int
-
-    while (input.read(buffer).also { count = it } != -1)  {
-    if (isCancelled) break
-       while (isPaused && !isCancelled) {
-    Thread.sleep(200)
-}
-
-if (isCancelled) break
-        output.write(buffer, 0, count)
-        downloadedBytes += count
-        val currentDownloaded = downloadedBytes
-
-        runOnUiThread {
-            downloadedText.text =
-                "تم تنزيل: ${formatBytes(currentDownloaded)}"
-
-            if (totalBytes > 0) {
-                val remaining =
-                    (totalBytes - currentDownloaded).coerceAtLeast(0)
-
-                val percent =
-                    ((currentDownloaded * 100) / totalBytes)
-                        .toInt()
-                        .coerceIn(0, 100)
-
-                remainingText.text =
-                    "المتبقي: ${formatBytes(remaining)}"
-
-                percentText.text = "التقدم: $percent%"
-                progressBar.progress = percent
-            }
-        }
-    }
-
-  input.close()
-output.close()
-if (isCancelled) {
-    contentResolver.delete(fileUri, null, null)
-    runOnUiThread {
-        statusText.text = "تم إلغاء التنزيل"
-        pauseButton.isEnabled = false
-        cancelButton.isEnabled = false
-    }
-    return@thread
-}
-    values.clear()
-values.put(MediaStore.Downloads.IS_PENDING, 0)
-contentResolver.update(fileUri, values, null, null)
-}
-        runOnUiThread {
-            if (responseCode in 200..299) {
-                statusText.text = "جاهز للتنزيل"
-pauseButton.visibility = android.view.View.GONE
-cancelButton.visibility = android.view.View.GONE
-                if (totalBytes > 0) {
-                    totalSizeText.text =
-                        "الحجم الكلي: ${formatBytes(totalBytes)}"
-                    remainingText.text =
-                        "المتبقي: ${formatBytes(totalBytes)}"
-                } else {
-                    totalSizeText.text = "الحجم الكلي: غير معروف"
-                    remainingText.text = "المتبقي: غير معروف"
-                }
-            } else {
-                statusText.text = "تعذر الاتصال بالخادم: $responseCode"
-            }
-        }
-
-    } catch (e: Exception) {
-        runOnUiThread {
-            statusText.text =
-                "خطأ في قراءة حجم الملف: ${e.message ?: "غير معروف"}"
-        }
-    } finally {
-        connection?.disconnect()
-    }
-}
+androidx.core.content.ContextCompat.startForegroundService(
+    this,
+    serviceIntent
+)
     }
     private fun formatBytes(bytes: Long): String {
     if (bytes < 1024) return "$bytes B"
