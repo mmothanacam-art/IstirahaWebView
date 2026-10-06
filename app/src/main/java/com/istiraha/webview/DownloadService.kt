@@ -133,7 +133,15 @@ android.util.Log.e("IstirahaDownload", "HTTP CODE = $responseCode")
 if (responseCode !in 200..299) {
     throw Exception("خطأ من الخادم: $responseCode")
 }
+val contentLength = connection.contentLengthLong
 
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "حجم الملف من الخادم: $contentLength بايت",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
 val input = connection.inputStream
 
 val values = ContentValues().apply {
