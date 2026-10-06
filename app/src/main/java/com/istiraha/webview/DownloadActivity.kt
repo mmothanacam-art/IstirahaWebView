@@ -24,7 +24,10 @@ class DownloadActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var pauseButton: Button
     private lateinit var cancelButton: Button
-
+@Volatile
+private var isCancelled = false
+ @Volatile
+private var isPaused = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -78,14 +81,24 @@ class DownloadActivity : AppCompatActivity() {
 
         pauseButton = Button(this).apply {
             text = "إيقاف مؤقت"
-            isEnabled = false
+            isEnabled = true
         }
 
         cancelButton = Button(this).apply {
             text = "إلغاء التنزيل"
-            isEnabled = false
+            isEnabled = true
         }
+pauseButton.setOnClickListener {
+    isPaused = !isPaused
 
+    if (isPaused) {
+        pauseButton.text = "استئناف"
+        statusText.text = "تم إيقاف التنزيل مؤقتًا"
+    } else {
+        pauseButton.text = "إيقاف مؤقت"
+        statusText.text = "جاري التنزيل..."
+    }
+}
         layout.addView(titleText)
         layout.addView(statusText)
         layout.addView(totalSizeText)
@@ -119,7 +132,12 @@ class DownloadActivity : AppCompatActivity() {
         )
 
         setContentView(layout)
-val downloadUrl = intent.getStringExtra("url")
+cancelButton.setOnClickListener {
+    isCancelled = true
+    cancelButton.isEnabled = false
+    statusText.text = "جاري إلغاء التنزيل..."
+}
+        val downloadUrl = intent.getStringExtra("url")
 val userAgent = intent.getStringExtra("userAgent")
 val cookies = intent.getStringExtra("cookies")
 val referer = intent.getStringExtra("referer")
@@ -181,8 +199,14 @@ val output = contentResolver.openOutputStream(fileUri)
     var downloadedBytes = 0L
     var count: Int
 
-    while (input.read(buffer).also { count = it } != -1) {
-       output.write(buffer, 0, count)
+    while (input.read(buffer).also { count = it } != -1)  {
+    if (isCancelled) break
+       while (isPaused && !isCancelled) {
+    Thread.sleep(200)
+}
+
+if (isCancelled) break
+        output.write(buffer, 0, count)
         downloadedBytes += count
         val currentDownloaded = downloadedBytes
 
@@ -210,7 +234,16 @@ val output = contentResolver.openOutputStream(fileUri)
 
   input.close()
 output.close()
-values.clear()
+if (isCancelled) {
+    contentResolver.delete(fileUri, null, null)
+    runOnUiThread {
+        statusText.text = "تم إلغاء التنزيل"
+        pauseButton.isEnabled = false
+        cancelButton.isEnabled = false
+    }
+    return@thread
+}
+    values.clear()
 values.put(MediaStore.Downloads.IS_PENDING, 0)
 contentResolver.update(fileUri, values, null, null)
 }
