@@ -3,6 +3,8 @@ package com.istiraha.app
 import android.os.Bundle
 import android.content.ContentValues
 import android.provider.MediaStore
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
@@ -25,13 +27,34 @@ class DownloadActivity : AppCompatActivity() {
     private lateinit var pauseButton: Button
     private lateinit var cancelButton: Button
 private lateinit var backButton: Button
+    private lateinit var progressReceiver: BroadcastReceiver
     @Volatile
 private var isCancelled = false
  @Volatile
 private var isPaused = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+progressReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+  val downloaded = intent?.getLongExtra("downloaded", 0L) ?: 0L  }
+val total = intent?.getLongExtra("total", -1L) ?: -1L
+downloadedText.text = "تم تنزيل: ${formatBytes(downloaded)}"
+}if (total > 0) {
+    totalSizeText.text = "الحجم الكلي: ${formatBytes(total)}"
+}
+        val percent = ((downloaded * 100) / total).toInt()
+progressBar.progress = percent
+percentText.text = "التقدم: $percent%"
+        val remaining = total - downloaded
+remainingText.text = "المتبقي: ${formatBytes(remaining)}"
+      val filter = IntentFilter("com.istiraha.app.DOWNLOAD_PROGRESS")
 
+androidx.core.content.ContextCompat.registerReceiver(
+    this,
+    progressReceiver,
+    filter,
+    androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+)
         val padding = (20 * resources.displayMetrics.density).toInt()
 
         val layout = LinearLayout(this).apply {
