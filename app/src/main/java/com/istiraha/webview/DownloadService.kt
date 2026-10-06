@@ -97,6 +97,13 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
     ).show()
 }
         connection.requestMethod = "GET"
+       android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "تم ضبط GET",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20000
         connection.readTimeout = 30000
