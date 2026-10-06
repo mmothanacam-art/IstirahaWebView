@@ -34,21 +34,37 @@ private var isCancelled = false
 private var isPaused = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-progressReceiver = object : BroadcastReceiver() {
-    override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
-  val downloaded = intent?.getLongExtra("downloaded", 0L) ?: 0L  }
-val total = intent?.getLongExtra("total", -1L) ?: -1L
-downloadedText.text = "تم تنزيل: ${formatBytes(downloaded)}"
-}if (total > 0) {
-    totalSizeText.text = "الحجم الكلي: ${formatBytes(total)}"
-}
-        val percent = ((downloaded * 100) / total).toInt()
-progressBar.progress = percent
-percentText.text = "التقدم: $percent%"
-        val remaining = total - downloaded
-remainingText.text = "المتبقي: ${formatBytes(remaining)}"
-      val filter = IntentFilter("com.istiraha.app.DOWNLOAD_PROGRESS")
 
+progressReceiver = object : BroadcastReceiver() {
+    override fun onReceive(
+        context: android.content.Context?,
+        intent: android.content.Intent?
+    ) {
+        val downloaded =
+            intent?.getLongExtra("downloaded", 0L) ?: 0L
+
+        val total =
+            intent?.getLongExtra("total", -1L) ?: -1L
+
+        downloadedText.text =
+            "تم تنزيل: ${formatBytes(downloaded)}"
+
+        if (total > 0) {
+            totalSizeText.text =
+                "الحجم الكلي: ${formatBytes(total)}"
+
+            val percent =
+                ((downloaded * 100) / total).toInt()
+
+            progressBar.progress = percent
+            percentText.text = "التقدم: $percent%"
+
+            val remaining = total - downloaded
+            remainingText.text =
+                "المتبقي: ${formatBytes(remaining)}"
+        }
+    }
+}
 androidx.core.content.ContextCompat.registerReceiver(
     this,
     progressReceiver,
