@@ -89,7 +89,10 @@ private var isPaused = false
             text = "إلغاء التنزيل"
             isEnabled = true
         }
-pauseButton.setOnClickListener {
+backButton = Button(this).apply {
+    text = "العودة إلى الاستراحة"
+}
+        pauseButton.setOnClickListener {
     isPaused = !isPaused
 
     if (isPaused) {
