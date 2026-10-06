@@ -90,7 +90,7 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
        }
         connection = URL(downloadUrl).openConnection() as HttpURLConnection
 
-}
+
        android.os.Handler(android.os.Looper.getMainLooper()).post {
     android.widget.Toast.makeText(
         applicationContext,
