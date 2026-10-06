@@ -145,7 +145,10 @@ webView.setDownloadListener {
         putExtra("referer", referer)
     }
 
-    startService(intent)
+    androidx.core.content.ContextCompat.startForegroundService(
+    this,
+    intent
+)
 }
         // فتح الموقع
         if (savedInstanceState == null) {
