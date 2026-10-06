@@ -157,7 +157,7 @@ val referer = intent.getStringExtra("referer")
 val fileName = intent.getStringExtra("fileName")
 
 titleText.text = fileName ?: "تنزيل الملف"
-
+statusText.text = "الرابط: ${downloadUrl ?: "NULL"}"
 if (downloadUrl.isNullOrEmpty()) {
     statusText.text = "خطأ: رابط التنزيل غير موجود"
     return
