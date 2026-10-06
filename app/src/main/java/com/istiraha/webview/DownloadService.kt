@@ -133,7 +133,8 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
 }
         try {
     connection.connect()
-} catch (e: Exception) {
+android.util.Log.e("IstirahaDownload", "CONNECT SUCCESS")
+        } catch (e: Exception) {
     android.os.Handler(android.os.Looper.getMainLooper()).post {
         android.widget.Toast.makeText(
             applicationContext,
