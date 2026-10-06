@@ -100,7 +100,13 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20000
         connection.readTimeout = 30000
-
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "تم ضبط إعدادات GET والوقت",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
         if (!userAgent.isNullOrEmpty()) {
             connection.setRequestProperty("User-Agent", userAgent)
         }
