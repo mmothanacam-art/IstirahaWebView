@@ -66,11 +66,7 @@ progressReceiver = object : BroadcastReceiver() {
     }
 }
 val filter = IntentFilter("com.istiraha.app.DOWNLOAD_PROGRESS")
-        androidx.core.content.ContextCompat.registerReceiver(
-    this,
-    progressReceiver,
-    filter,
-    androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+
 )
         val padding = (20 * resources.displayMetrics.density).toInt()
 
@@ -182,7 +178,13 @@ layout.addView(
     )
 )
         setContentView(layout)
-backButton.setOnClickListener {
+androidx.core.content.ContextCompat.registerReceiver(
+    this,
+    progressReceiver,
+    filter,
+    androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+)
+        backButton.setOnClickListener {
     finish()
 }
         cancelButton.setOnClickListener {
