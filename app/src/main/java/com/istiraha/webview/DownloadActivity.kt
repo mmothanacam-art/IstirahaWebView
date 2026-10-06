@@ -173,10 +173,6 @@ val serviceIntent = android.content.Intent(
     putExtra("fileName", fileName)
 }
 
-androidx.core.content.ContextCompat.startForegroundService(
-    this,
-    serviceIntent
-)
     }
     private fun formatBytes(bytes: Long): String {
     if (bytes < 1024) return "$bytes B"
