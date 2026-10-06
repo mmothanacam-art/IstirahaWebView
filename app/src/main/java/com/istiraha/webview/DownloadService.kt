@@ -188,9 +188,16 @@ val output = contentResolver.openOutputStream(fileUri)
 
 val buffer = ByteArray(8192)
 var count: Int
-
+var downloadedBytes = 0L
 while (input.read(buffer).also { count = it } != -1) {
     output.write(buffer, 0, count)
+downloadedBytes += count 
+val progressIntent = Intent("com.istiraha.app.DOWNLOAD_PROGRESS").apply {
+    setPackage(packageName)
+    putExtra("downloaded", downloadedBytes)
+    putExtra("total", contentLength)
+}
+sendBroadcast(progressIntent)
 }
 
 output.flush()
