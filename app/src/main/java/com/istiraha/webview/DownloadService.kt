@@ -117,7 +117,13 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
         if (!cookies.isNullOrEmpty()) {
             connection.setRequestProperty("Cookie", cookies)
         }
-
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "تم تجاوز User-Agent",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
         if (!referer.isNullOrEmpty()) {
             connection.setRequestProperty("Referer", referer)
         }
