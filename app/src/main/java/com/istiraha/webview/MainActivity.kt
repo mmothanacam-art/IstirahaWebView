@@ -121,7 +121,11 @@ webView.setDownloadListener {
         contentDisposition,
         mimeType,
         _ ->
-
+Toast.makeText(
+    this,
+    "الرابط الأصلي: $url",
+    Toast.LENGTH_LONG
+).show()
     val cookies =
         CookieManager.getInstance().getCookie(url)
 
