@@ -4,10 +4,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.ContentValues
+import android.provider.MediaStore
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.concurrent.thread
 class DownloadService : Service() {
 
     companion object {
@@ -42,7 +46,10 @@ class DownloadService : Service() {
 
         val fileName =
             intent?.getStringExtra("fileName") ?: "download.mp4"
-
+val downloadUrl = intent?.getStringExtra("url")
+val userAgent = intent?.getStringExtra("userAgent")
+val cookies = intent?.getStringExtra("cookies")
+val referer = intent?.getStringExtra("referer")
         val notification = NotificationCompat.Builder(
             this,
             CHANNEL_ID
@@ -59,7 +66,88 @@ class DownloadService : Service() {
             NOTIFICATION_ID,
             notification
         )
+if (downloadUrl.isNullOrEmpty()) {
+    stopSelf()
+    return START_NOT_STICKY
+}
+       thread {
+    var connection: HttpURLConnection? = null
 
+    try {
+        connection = URL(downloadUrl).openConnection() as HttpURLConnection
+
+        connection.requestMethod = "GET"
+        connection.instanceFollowRedirects = true
+        connection.connectTimeout = 20000
+        connection.readTimeout = 30000
+
+        if (!userAgent.isNullOrEmpty()) {
+            connection.setRequestProperty("User-Agent", userAgent)
+        }
+
+        if (!cookies.isNullOrEmpty()) {
+            connection.setRequestProperty("Cookie", cookies)
+        }
+
+        if (!referer.isNullOrEmpty()) {
+            connection.setRequestProperty("Referer", referer)
+        }
+
+        connection.setRequestProperty("Accept", "*/*")
+        connection.setRequestProperty("Accept-Encoding", "identity")
+
+        connection.connect()
+   val responseCode = connection.responseCode
+
+if (responseCode !in 200..299) {
+    throw Exception("خطأ من الخادم: $responseCode")
+}
+
+val input = connection.inputStream
+
+val values = ContentValues().apply {
+    put(
+        MediaStore.Downloads.DISPLAY_NAME,
+        fileName
+    )
+    put(
+        MediaStore.Downloads.MIME_TYPE,
+        "video/mp4"
+    )
+    put(MediaStore.Downloads.IS_PENDING, 1)
+}
+
+val fileUri = contentResolver.insert(
+    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+    values
+) ?: throw Exception("تعذر إنشاء ملف التنزيل")
+
+val output = contentResolver.openOutputStream(fileUri)
+    ?: throw Exception("تعذر فتح ملف التنزيل")
+
+val buffer = ByteArray(8192)
+var count: Int
+
+while (input.read(buffer).also { count = it } != -1) {
+    output.write(buffer, 0, count)
+}
+
+output.flush()
+output.close()
+input.close()
+
+values.clear()
+values.put(MediaStore.Downloads.IS_PENDING, 0)
+contentResolver.update(fileUri, values, null, null)
+
+stopForeground(true)
+stopSelf()
+    } catch (e: Exception) {
+        stopSelf()
+    } finally {
+        connection?.disconnect()
+    }
+       }
         return START_NOT_STICKY
     }
 
