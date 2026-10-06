@@ -89,7 +89,13 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
     ).show()
        }
         connection = URL(downloadUrl).openConnection() as HttpURLConnection
-
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "تم إنشاء الاتصال",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
         connection.requestMethod = "GET"
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20000
