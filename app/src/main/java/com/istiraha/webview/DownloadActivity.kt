@@ -65,7 +65,8 @@ progressReceiver = object : BroadcastReceiver() {
         }
     }
 }
-androidx.core.content.ContextCompat.registerReceiver(
+val filter = IntentFilter("com.istiraha.app.DOWNLOAD_PROGRESS")
+        androidx.core.content.ContextCompat.registerReceiver(
     this,
     progressReceiver,
     filter,
