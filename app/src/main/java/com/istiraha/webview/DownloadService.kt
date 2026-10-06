@@ -115,7 +115,14 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
 
         connection.setRequestProperty("Accept", "*/*")
         connection.setRequestProperty("Accept-Encoding", "identity")
-try {
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "تم تجهيز جميع إعدادات الاتصال",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
+        try {
     connection.connect()
 } catch (e: Exception) {
     android.os.Handler(android.os.Looper.getMainLooper()).post {
