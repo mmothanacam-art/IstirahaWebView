@@ -1,6 +1,8 @@
 package com.istiraha.app
 
 import android.os.Bundle
+import android.content.ContentValues
+import android.provider.MediaStore
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
@@ -162,13 +164,26 @@ thread {
         val totalBytes = connection.contentLengthLong
 if (responseCode in 200..299) {
     val input = connection.inputStream
+  val values = ContentValues().apply {
+    put(MediaStore.Downloads.DISPLAY_NAME, fileName ?: "download.mp4")
+    put(MediaStore.Downloads.MIME_TYPE, "video/mp4")
+    put(MediaStore.Downloads.IS_PENDING, 1)
+}
+
+val fileUri = contentResolver.insert(
+    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+    values
+) ?: throw Exception("تعذر إنشاء ملف التنزيل")
+
+val output = contentResolver.openOutputStream(fileUri)
+    ?: throw Exception("تعذر فتح ملف التنزيل")
     val buffer = ByteArray(8192)
     var downloadedBytes = 0L
     var count: Int
 
     while (input.read(buffer).also { count = it } != -1) {
+       output.write(buffer, 0, count)
         downloadedBytes += count
-
         val currentDownloaded = downloadedBytes
 
         runOnUiThread {
@@ -193,7 +208,11 @@ if (responseCode in 200..299) {
         }
     }
 
-    input.close()
+  input.close()
+output.close()
+values.clear()
+values.put(MediaStore.Downloads.IS_PENDING, 0)
+contentResolver.update(fileUri, values, null, null)
 }
         runOnUiThread {
             if (responseCode in 200..299) {
