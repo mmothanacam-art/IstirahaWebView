@@ -212,4 +212,7 @@ androidx.core.content.ContextCompat.startForegroundService(
     val gb = mb / 1024.0
     return String.format("%.2f GB", gb)
 }
-    }
+  override fun onDestroy() {
+    super.onDestroy()
+    unregisterReceiver(progressReceiver)
+  }  }
