@@ -67,7 +67,6 @@ progressReceiver = object : BroadcastReceiver() {
 }
 val filter = IntentFilter("com.istiraha.app.DOWNLOAD_PROGRESS")
 
-)
         val padding = (20 * resources.displayMetrics.density).toInt()
 
         val layout = LinearLayout(this).apply {
