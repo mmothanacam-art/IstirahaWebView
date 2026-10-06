@@ -135,7 +135,7 @@ webView.setDownloadListener {
 
     val intent = android.content.Intent(
         this,
-        DownloadService::class.java
+        DownloadActivity::class.java
     ).apply {
         putExtra("url", url)
         putExtra("fileName", fileName)
@@ -145,10 +145,7 @@ webView.setDownloadListener {
         putExtra("referer", referer)
     }
 
-    androidx.core.content.ContextCompat.startForegroundService(
-    this,
-    intent
-)
+    startActivity(intent)
 }
         // فتح الموقع
         if (savedInstanceState == null) {
