@@ -24,7 +24,8 @@ class DownloadActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var pauseButton: Button
     private lateinit var cancelButton: Button
-@Volatile
+private lateinit var backButton: Button
+    @Volatile
 private var isCancelled = false
  @Volatile
 private var isPaused = false
