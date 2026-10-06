@@ -66,7 +66,14 @@ val referer = intent?.getStringExtra("referer")
             NOTIFICATION_ID,
             notification
         )
-if (downloadUrl.isNullOrEmpty()) {
+android.os.Handler(android.os.Looper.getMainLooper()).post {
+    android.widget.Toast.makeText(
+        applicationContext,
+        "URL = $downloadUrl",
+        android.widget.Toast.LENGTH_LONG
+    ).show()
+}
+        if (downloadUrl.isNullOrEmpty()) {
     stopSelf()
     return START_NOT_STICKY
 }
