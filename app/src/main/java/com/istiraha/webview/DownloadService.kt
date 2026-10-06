@@ -100,11 +100,11 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20000
         connection.readTimeout = 30000
-*/
+
         if (!userAgent.isNullOrEmpty()) {
             connection.setRequestProperty("User-Agent", userAgent)
         }
-/*
+
         if (!cookies.isNullOrEmpty()) {
             connection.setRequestProperty("Cookie", cookies)
         }
