@@ -250,7 +250,8 @@ contentResolver.update(fileUri, values, null, null)
         runOnUiThread {
             if (responseCode in 200..299) {
                 statusText.text = "جاهز للتنزيل"
-
+pauseButton.visibility = android.view.View.GONE
+cancelButton.visibility = android.view.View.GONE
                 if (totalBytes > 0) {
                     totalSizeText.text =
                         "الحجم الكلي: ${formatBytes(totalBytes)}"
