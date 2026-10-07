@@ -8,7 +8,7 @@
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
         android:hardwareAccelerated="true"
-        android:label="Istiraha"
+        android:label="الاستراحة"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <activity
