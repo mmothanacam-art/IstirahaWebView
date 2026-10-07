@@ -56,13 +56,6 @@ private var isCancelled = false
         action = ACTION_RESUME
     }
 
-    val resumePendingIntent = PendingIntent.getService(
-        this,
-        2,
-        resumeIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
     val pausedNotification = NotificationCompat.Builder(this, CHANNEL_ID)
         .setSmallIcon(android.R.drawable.stat_sys_download)
         .setContentTitle("التنزيل متوقف مؤقتًا")
