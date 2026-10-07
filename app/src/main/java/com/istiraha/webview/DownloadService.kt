@@ -52,10 +52,11 @@ private var isCancelled = false
 if (intent?.action == ACTION_PAUSE) {
     isPaused = true
     return START_NOT_STICKY
+}
+
 if (intent?.action == ACTION_RESUME) {
     isPaused = false
     return START_NOT_STICKY
-}
 }
         val fileName =
             intent?.getStringExtra("fileName") ?: "download.mp4"
