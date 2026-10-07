@@ -48,7 +48,8 @@ private var isCancelled = false
         intent: Intent?,
         flags: Int,
         startId: Int
-    ): Int if (intent?.action == ACTION_PAUSE) {
+      ): Int {
+     if (intent?.action == ACTION_PAUSE) {
     isPaused = true
 
     val resumeIntent = Intent(this, DownloadService::class.java).apply {
