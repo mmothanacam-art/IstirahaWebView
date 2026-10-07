@@ -2,6 +2,7 @@ package com.istiraha.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.ContentValues
@@ -13,10 +14,15 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
 class DownloadService : Service() {
-
+@Volatile
+private var isPaused = false
+  @Volatile
+private var isCancelled = false
     companion object {
         const val CHANNEL_ID = "download_channel"
         const val NOTIFICATION_ID = 1001
+   const val ACTION_PAUSE = "com.istiraha.app.ACTION_PAUSE_DOWNLOAD"
+  const val ACTION_RESUME = "com.istiraha.app.ACTION_RESUME_DOWNLOAD"
     }
 
     override fun onCreate() {
@@ -43,13 +49,40 @@ class DownloadService : Service() {
         flags: Int,
         startId: Int
     ): Int {
-
+if (intent?.action == ACTION_PAUSE) {
+    isPaused = true
+    return START_NOT_STICKY
+if (intent?.action == ACTION_RESUME) {
+    isPaused = false
+    return START_NOT_STICKY
+}
+}
         val fileName =
             intent?.getStringExtra("fileName") ?: "download.mp4"
 val downloadUrl = intent?.getStringExtra("url")
 val userAgent = intent?.getStringExtra("userAgent")
 val cookies = intent?.getStringExtra("cookies")
 val referer = intent?.getStringExtra("referer")
+       val pauseIntent = Intent(this, DownloadService::class.java).apply {
+    action = ACTION_PAUSE
+}
+
+val pausePendingIntent = PendingIntent.getService(
+    this,
+    1,
+    pauseIntent,
+    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+)
+val resumeIntent = Intent(this, DownloadService::class.java).apply {
+    action = ACTION_RESUME
+}
+
+val resumePendingIntent = PendingIntent.getService(
+    this,
+    2,
+    resumeIntent,
+    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+)
         val notification = NotificationCompat.Builder(
             this,
             CHANNEL_ID
@@ -60,6 +93,11 @@ val referer = intent?.getStringExtra("referer")
             .setProgress(100, 0, true)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+           .addAction(
+    android.R.drawable.ic_media_pause,
+    "إيقاف مؤقت",
+    pausePendingIntent
+)
             .build()
 
         startForeground(
@@ -94,7 +132,12 @@ val debugNotification = NotificationCompat.Builder(this, CHANNEL_ID)
     .setContentText("المرحلة 1: تم إنشاء اتصال التنزيل")
     .setOngoing(true)
     .setOnlyAlertOnce(true)
-    .build()
+    .addAction(
+    android.R.drawable.ic_media_pause,
+    "إيقاف مؤقت",
+    pausePendingIntent
+)
+   .build()
 
 getSystemService(NotificationManager::class.java)
     .notify(NOTIFICATION_ID, debugNotification)
@@ -197,6 +240,9 @@ val buffer = ByteArray(8192)
 var count: Int
 var downloadedBytes = 0L
 while (input.read(buffer).also { count = it } != -1) {
+    while (isPaused) {
+    Thread.sleep(200)
+    }
     output.write(buffer, 0, count)
 downloadedBytes += count 
 val progressIntent = Intent("com.istiraha.app.DOWNLOAD_PROGRESS").apply {
