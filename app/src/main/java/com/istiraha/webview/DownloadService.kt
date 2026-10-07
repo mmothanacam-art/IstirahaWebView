@@ -45,10 +45,10 @@ private var isCancelled = false
     }
 
     override fun onStartCommand(
-        intent: Intent?,
-        flags: Int,
-        startId: Int
-      } Int :(
+    intent: Intent?,
+    flags: Int,
+    startId: Int
+): Int {
      if (intent?.action == ACTION_PAUSE) {
     isPaused = true
 
