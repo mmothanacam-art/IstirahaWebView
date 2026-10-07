@@ -9,6 +9,7 @@
         android:usesCleartextTraffic="true"
         android:hardwareAccelerated="true"
         android:label="الاستراحة"
+       android:icon="@drawable/app_icon"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <activity
