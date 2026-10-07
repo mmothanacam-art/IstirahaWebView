@@ -48,7 +48,7 @@ private var isCancelled = false
         intent: Intent?,
         flags: Int,
         startId: Int
-      ): Int {
+      } Int :(
      if (intent?.action == ACTION_PAUSE) {
     isPaused = true
 
