@@ -48,14 +48,68 @@ private var isCancelled = false
         intent: Intent?,
         flags: Int,
         startId: Int
-    ): Int {
-if (intent?.action == ACTION_PAUSE) {
+    ): Int if (intent?.action == ACTION_PAUSE) {
     isPaused = true
-    return START_NOT_STICKY
-}
 
+    val resumeIntent = Intent(this, DownloadService::class.java).apply {
+        action = ACTION_RESUME
+    }
+
+    val resumePendingIntent = PendingIntent.getService(
+        this,
+        2,
+        resumeIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val pausedNotification = NotificationCompat.Builder(this, CHANNEL_ID)
+        .setSmallIcon(android.R.drawable.stat_sys_download)
+        .setContentTitle("التنزيل متوقف مؤقتًا")
+        .setContentText("اضغط استئناف لمتابعة التنزيل")
+        .setOngoing(true)
+        .setOnlyAlertOnce(true)
+        .addAction(
+            android.R.drawable.ic_media_play,
+            "استئناف",
+            resumePendingIntent
+        )
+        .build()
+
+    getSystemService(NotificationManager::class.java)
+        .notify(NOTIFICATION_ID, pausedNotification)
+
+    return START_NOT_STICKY
+    }
 if (intent?.action == ACTION_RESUME) {
     isPaused = false
+
+    val pauseIntent = Intent(this, DownloadService::class.java).apply {
+        action = ACTION_PAUSE
+    }
+
+    val pausePendingIntent = PendingIntent.getService(
+        this,
+        1,
+        pauseIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val resumedNotification = NotificationCompat.Builder(this, CHANNEL_ID)
+        .setSmallIcon(android.R.drawable.stat_sys_download)
+        .setContentTitle("جاري التنزيل")
+        .setContentText("تم استئناف التنزيل")
+        .setOngoing(true)
+        .setOnlyAlertOnce(true)
+        .addAction(
+            android.R.drawable.ic_media_pause,
+            "إيقاف مؤقت",
+            pausePendingIntent
+        )
+        .build()
+
+    getSystemService(NotificationManager::class.java)
+        .notify(NOTIFICATION_ID, resumedNotification)
+
     return START_NOT_STICKY
 }
         val fileName =
@@ -127,22 +181,6 @@ android.os.Handler(android.os.Looper.getMainLooper()).post {
         android.widget.Toast.LENGTH_LONG
     ).show()
        }
-val debugNotification = NotificationCompat.Builder(this, CHANNEL_ID)
-    .setSmallIcon(android.R.drawable.stat_sys_download)
-    .setContentTitle(fileName)
-    .setContentText("المرحلة 1: تم إنشاء اتصال التنزيل")
-    .setOngoing(true)
-    .setOnlyAlertOnce(true)
-    .addAction(
-    android.R.drawable.ic_media_pause,
-    "إيقاف مؤقت",
-    pausePendingIntent
-)
-   .build()
-
-getSystemService(NotificationManager::class.java)
-    .notify(NOTIFICATION_ID, debugNotification)
-       
         connection = URL(downloadUrl).openConnection() as HttpURLConnection
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20000
