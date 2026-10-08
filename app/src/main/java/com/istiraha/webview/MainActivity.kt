@@ -79,15 +79,26 @@ class MainActivity : AppCompatActivity() {
                 (125 * density).toInt(),
                 (55 * density).toInt()
             ).apply {
+val wifiButtonParams =
+    FrameLayout.LayoutParams(
+        (125 * density).toInt(),
+        (55 * density).toInt()
+    ).apply {
 
-                gravity =
-    Gravity.TOP or Gravity.RIGHT
+        gravity =
+            Gravity.TOP or Gravity.RIGHT
 
-rightMargin =
-    (8 * density).toInt()
+        rightMargin =
+            (8 * density).toInt()
 
-topMargin =
-    (8 * density).toInt()
+        topMargin =
+            (8 * density).toInt()
+    }
+
+rootContainer.addView(
+    wifiButton,
+    wifiButtonParams
+)
 
         rootContainer.addView(
             wifiButton,
