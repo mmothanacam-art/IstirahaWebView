@@ -1,5 +1,5 @@
 package com.istiraha.app
-
+import com.istiraha.webview.R
 import android.Manifest
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
