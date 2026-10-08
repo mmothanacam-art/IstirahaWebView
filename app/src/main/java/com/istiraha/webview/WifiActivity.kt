@@ -1,4 +1,5 @@
 package com.istiraha.app
+
 import android.Manifest
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
@@ -14,9 +15,12 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
+import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -55,15 +59,11 @@ class WifiActivity : AppCompatActivity() {
 
     private val wifiScanReceiver =
         object : BroadcastReceiver() {
-
             override fun onReceive(
                 context: Context?,
                 intent: Intent?
             ) {
-                if (
-                    intent?.action ==
-                    WifiManager.SCAN_RESULTS_AVAILABLE_ACTION
-                ) {
+                if (intent?.action == WifiManager.SCAN_RESULTS_AVAILABLE_ACTION) {
                     showScanResults()
                 }
             }
@@ -72,17 +72,12 @@ class WifiActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_wifi)
+        createInterface()
 
         wifiManager =
             applicationContext.getSystemService(
                 Context.WIFI_SERVICE
             ) as WifiManager
-
-        statusText = findViewById(R.id.statusText)
-        strongestText = findViewById(R.id.strongestText)
-        wifiList = findViewById(R.id.wifiList)
-        scanButton = findViewById(R.id.scanButton)
 
         registerWifiReceiver()
 
@@ -91,15 +86,114 @@ class WifiActivity : AppCompatActivity() {
         }
 
         wifiList.setOnItemClickListener { _, _, position, _ ->
-
             if (position in currentNetworks.indices) {
-                showNetworkDialog(
-                    currentNetworks[position]
-                )
+                showNetworkDialog(currentNetworks[position])
             }
         }
 
         statusText.text = "جاهز لفحص شبكات WiFi"
+    }
+
+    private fun createInterface() {
+
+        val density = resources.displayMetrics.density
+
+        fun dp(value: Int): Int {
+            return (value * density).toInt()
+        }
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            layoutDirection = android.view.View.LAYOUT_DIRECTION_RTL
+        }
+
+        val titleText = TextView(this).apply {
+            text = "استراحة WiFi"
+            textSize = 26f
+            gravity = Gravity.CENTER
+            setPadding(dp(10), dp(10), dp(10), dp(10))
+        }
+
+        statusText = TextView(this).apply {
+            text = "جاهز لفحص شبكات WiFi"
+            textSize = 16f
+            gravity = Gravity.CENTER
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+        }
+
+        scanButton = Button(this).apply {
+            text = "فحص شبكات WiFi"
+            textSize = 18f
+        }
+
+        strongestText = TextView(this).apply {
+            text = "أفضل شبكة: --"
+            textSize = 18f
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+        }
+
+        val networksTitle = TextView(this).apply {
+            text = "الشبكات المتاحة"
+            textSize = 18f
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        wifiList = ListView(this)
+
+        root.addView(
+            titleText,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        root.addView(
+            statusText,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        root.addView(
+            scanButton,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(8)
+                bottomMargin = dp(12)
+            }
+        )
+
+        root.addView(
+            strongestText,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        root.addView(
+            networksTitle,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        root.addView(
+            wifiList,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
+
+        setContentView(root)
     }
 
     private fun checkPermissions() {
@@ -114,10 +208,7 @@ class WifiActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
 
-        if (
-            Build.VERSION.SDK_INT >=
-            Build.VERSION_CODES.TIRAMISU
-        ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(
                 Manifest.permission.NEARBY_WIFI_DEVICES
             )
@@ -140,10 +231,7 @@ class WifiActivity : AppCompatActivity() {
             return false
         }
 
-        if (
-            Build.VERSION.SDK_INT >=
-            Build.VERSION_CODES.TIRAMISU
-        ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 
             val nearbyGranted =
                 ContextCompat.checkSelfPermission(
@@ -173,9 +261,7 @@ class WifiActivity : AppCompatActivity() {
 
             try {
                 startActivity(
-                    Intent(
-                        Settings.ACTION_LOCATION_SOURCE_SETTINGS
-                    )
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 )
             } catch (_: Exception) {
             }
@@ -194,14 +280,12 @@ class WifiActivity : AppCompatActivity() {
             ) as LocationManager
 
         return try {
-
             locationManager.isProviderEnabled(
                 LocationManager.GPS_PROVIDER
             ) ||
-                    locationManager.isProviderEnabled(
-                        LocationManager.NETWORK_PROVIDER
-                    )
-
+                locationManager.isProviderEnabled(
+                    LocationManager.NETWORK_PROVIDER
+                )
         } catch (_: Exception) {
             false
         }
@@ -226,20 +310,15 @@ class WifiActivity : AppCompatActivity() {
 
         try {
 
-            val started =
-                wifiManager.startScan()
+            val started = wifiManager.startScan()
 
             if (!started) {
                 showScanResults()
-
-                statusText.text =
-                    "تم عرض آخر نتائج WiFi المتاحة"
+                statusText.text = "تم عرض آخر نتائج WiFi المتاحة"
             }
 
         } catch (_: SecurityException) {
-
-            statusText.text =
-                "التطبيق لا يملك صلاحية فحص WiFi"
+            statusText.text = "التطبيق لا يملك صلاحية فحص WiFi"
         }
     }
 
@@ -254,10 +333,7 @@ class WifiActivity : AppCompatActivity() {
         try {
             results = wifiManager.scanResults
         } catch (_: SecurityException) {
-
-            statusText.text =
-                "تعذر قراءة شبكات WiFi"
-
+            statusText.text = "تعذر قراءة شبكات WiFi"
             return
         }
 
@@ -281,7 +357,6 @@ class WifiActivity : AppCompatActivity() {
                     it.SSID
                 }
                 .mapNotNull { (_, accessPoints) ->
-
                     accessPoints
                         .sortedWith(networkComparator)
                         .firstOrNull()
@@ -290,8 +365,7 @@ class WifiActivity : AppCompatActivity() {
 
         if (currentNetworks.isEmpty()) {
 
-            strongestText.text =
-                "أفضل شبكة: --"
+            strongestText.text = "أفضل شبكة: --"
 
             wifiList.adapter =
                 ArrayAdapter(
@@ -300,24 +374,21 @@ class WifiActivity : AppCompatActivity() {
                     emptyList<String>()
                 )
 
-            statusText.text =
-                "لم يتم العثور على شبكات WiFi"
+            statusText.text = "لم يتم العثور على شبكات WiFi"
 
             return
         }
 
-        val strongest =
-            currentNetworks.first()
+        val strongest = currentNetworks.first()
 
         strongestText.text =
             "أفضل شبكة: " +
-                    "${getSignalIcon(strongest.level)} " +
-                    "${strongest.SSID} " +
-                    "(${strongest.level} dBm)"
+                "${getSignalIcon(strongest.level)} " +
+                "${strongest.SSID} " +
+                "(${strongest.level} dBm)"
 
         val items =
             currentNetworks.mapIndexed { index, network ->
-
                 """
                 ${index + 1}. ${network.SSID}
                 ${getSignalIcon(network.level)} ${network.level} dBm • ${getBand(network.frequency)} • ${getQuality(network.level)}
@@ -336,7 +407,6 @@ class WifiActivity : AppCompatActivity() {
     }
 
     private fun getQualityPriority(level: Int): Int {
-
         return when {
             level >= -50 -> 5
             level >= -60 -> 4
@@ -347,7 +417,6 @@ class WifiActivity : AppCompatActivity() {
     }
 
     private fun getQuality(level: Int): String {
-
         return when {
             level >= -50 -> "قوية جداً"
             level >= -60 -> "ممتازة"
@@ -358,7 +427,6 @@ class WifiActivity : AppCompatActivity() {
     }
 
     private fun getSignalIcon(level: Int): String {
-
         return when {
             level >= -60 -> "🟢"
             level >= -70 -> "🟡"
@@ -367,7 +435,6 @@ class WifiActivity : AppCompatActivity() {
     }
 
     private fun getBandPriority(frequency: Int): Int {
-
         return when {
             frequency >= 5925 -> 3
             frequency >= 4900 -> 2
@@ -376,7 +443,6 @@ class WifiActivity : AppCompatActivity() {
     }
 
     private fun getBand(frequency: Int): String {
-
         return when {
             frequency >= 5925 -> "6 GHz"
             frequency >= 4900 -> "5 GHz"
@@ -384,12 +450,9 @@ class WifiActivity : AppCompatActivity() {
         }
     }
 
-    private fun showNetworkDialog(
-        network: ScanResult
-    ) {
+    private fun showNetworkDialog(network: ScanResult) {
 
-        val secured =
-            isSecured(network)
+        val secured = isSecured(network)
 
         val securityText =
             if (secured) {
@@ -416,45 +479,33 @@ class WifiActivity : AppCompatActivity() {
                 if (secured) {
                     showPasswordDialog(network)
                 } else {
-                    connectUsingSuggestion(
-                        network,
-                        null
-                    )
+                    connectUsingSuggestion(network, null)
                 }
             }
-            .setNegativeButton(
-                "إلغاء",
-                null
-            )
+            .setNegativeButton("إلغاء", null)
             .show()
     }
 
-    private fun isSecured(
-        network: ScanResult
-    ): Boolean {
+    private fun isSecured(network: ScanResult): Boolean {
 
         val capabilities =
             network.capabilities.uppercase()
 
         return capabilities.contains("WPA") ||
-                capabilities.contains("WEP") ||
-                capabilities.contains("SAE") ||
-                capabilities.contains("PSK")
+            capabilities.contains("WEP") ||
+            capabilities.contains("SAE") ||
+            capabilities.contains("PSK")
     }
 
-    private fun showPasswordDialog(
-        network: ScanResult
-    ) {
+    private fun showPasswordDialog(network: ScanResult) {
 
-        val passwordInput =
-            EditText(this)
+        val passwordInput = EditText(this)
 
-        passwordInput.hint =
-            "كلمة مرور WiFi"
+        passwordInput.hint = "كلمة مرور WiFi"
 
         passwordInput.inputType =
             InputType.TYPE_CLASS_TEXT or
-                    InputType.TYPE_TEXT_VARIATION_PASSWORD
+                InputType.TYPE_TEXT_VARIATION_PASSWORD
 
         passwordInput.setPadding(
             50,
@@ -465,9 +516,7 @@ class WifiActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle(network.SSID)
-            .setMessage(
-                "أدخل كلمة مرور الشبكة"
-            )
+            .setMessage("أدخل كلمة مرور الشبكة")
             .setView(passwordInput)
             .setPositiveButton("اتصال") { _, _ ->
 
@@ -483,17 +532,13 @@ class WifiActivity : AppCompatActivity() {
                     ).show()
 
                 } else {
-
                     connectUsingSuggestion(
                         network,
                         password
                     )
                 }
             }
-            .setNegativeButton(
-                "إلغاء",
-                null
-            )
+            .setNegativeButton("إلغاء", null)
             .show()
     }
 
@@ -502,10 +547,7 @@ class WifiActivity : AppCompatActivity() {
         password: String?
     ) {
 
-        if (
-            Build.VERSION.SDK_INT <
-            Build.VERSION_CODES.Q
-        ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 
             Toast.makeText(
                 this,
@@ -521,9 +563,7 @@ class WifiActivity : AppCompatActivity() {
             val capabilities =
                 scanResult.capabilities.uppercase()
 
-            if (
-                capabilities.contains("WEP")
-            ) {
+            if (capabilities.contains("WEP")) {
 
                 Toast.makeText(
                     this,
@@ -537,32 +577,18 @@ class WifiActivity : AppCompatActivity() {
             val builder =
                 WifiNetworkSuggestion
                     .Builder()
-                    .setSsid(
-                        scanResult.SSID
-                    )
+                    .setSsid(scanResult.SSID)
 
-            if (
-                !password.isNullOrBlank()
-            ) {
+            if (!password.isNullOrBlank()) {
 
-                if (
-                    capabilities.contains("SAE")
-                ) {
-
-                    builder.setWpa3Passphrase(
-                        password
-                    )
-
+                if (capabilities.contains("SAE")) {
+                    builder.setWpa3Passphrase(password)
                 } else {
-
-                    builder.setWpa2Passphrase(
-                        password
-                    )
+                    builder.setWpa2Passphrase(password)
                 }
             }
 
-            val suggestion =
-                builder.build()
+            val suggestion = builder.build()
 
             val result =
                 wifiManager.addNetworkSuggestions(
@@ -624,8 +650,7 @@ class WifiActivity : AppCompatActivity() {
 
         } catch (e: SecurityException) {
 
-            statusText.text =
-                "خطأ في صلاحيات WiFi"
+            statusText.text = "خطأ في صلاحيات WiFi"
 
             Toast.makeText(
                 this,
@@ -649,20 +674,14 @@ class WifiActivity : AppCompatActivity() {
     private fun openWifiSettings() {
 
         try {
-
             startActivity(
-                Intent(
-                    Settings.ACTION_WIFI_SETTINGS
-                )
+                Intent(Settings.ACTION_WIFI_SETTINGS)
             )
-
         } catch (_: Exception) {
 
             try {
                 startActivity(
-                    Intent(
-                        Settings.ACTION_SETTINGS
-                    )
+                    Intent(Settings.ACTION_SETTINGS)
                 )
             } catch (_: Exception) {
             }
@@ -680,10 +699,7 @@ class WifiActivity : AppCompatActivity() {
                 WifiManager.SCAN_RESULTS_AVAILABLE_ACTION
             )
 
-        if (
-            Build.VERSION.SDK_INT >=
-            Build.VERSION_CODES.TIRAMISU
-        ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 
             registerReceiver(
                 wifiScanReceiver,
@@ -707,9 +723,7 @@ class WifiActivity : AppCompatActivity() {
         if (receiverRegistered) {
 
             try {
-                unregisterReceiver(
-                    wifiScanReceiver
-                )
+                unregisterReceiver(wifiScanReceiver)
             } catch (_: Exception) {
             }
 
