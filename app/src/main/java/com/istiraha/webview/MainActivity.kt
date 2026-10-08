@@ -81,14 +81,13 @@ class MainActivity : AppCompatActivity() {
             ).apply {
 
                 gravity =
-                    Gravity.TOP or Gravity.LEFT
+    Gravity.TOP or Gravity.RIGHT
 
-                leftMargin =
-                    (8 * density).toInt()
+rightMargin =
+    (8 * density).toInt()
 
-                topMargin =
-                    (8 * density).toInt()
-            }
+topMargin =
+    (8 * density).toInt()
 
         rootContainer.addView(
             wifiButton,
