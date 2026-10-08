@@ -3,10 +3,12 @@ package com.istiraha.app
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -15,6 +17,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -24,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var rootContainer: FrameLayout
+    private lateinit var wifiButton: Button
 
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -32,10 +36,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // الحاوية الرئيسية
         rootContainer = FrameLayout(this)
 
-        // إنشاء WebView
         webView = WebView(this)
 
         rootContainer.addView(
@@ -46,10 +48,60 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
+        // زر أداة WiFi
+        wifiButton = Button(this).apply {
+
+            text = "📶 WiFi 💪"
+
+            textSize = 14f
+
+            isAllCaps = false
+
+            elevation = 20f
+
+            setOnClickListener {
+
+                val intent =
+                    Intent(
+                        this@MainActivity,
+                        WifiActivity::class.java
+                    )
+
+                startActivity(intent)
+            }
+        }
+
+        val density =
+            resources.displayMetrics.density
+
+        val wifiButtonParams =
+            FrameLayout.LayoutParams(
+                (125 * density).toInt(),
+                (55 * density).toInt()
+            ).apply {
+
+                gravity =
+                    Gravity.TOP or Gravity.LEFT
+
+                leftMargin =
+                    (8 * density).toInt()
+
+                topMargin =
+                    (8 * density).toInt()
+            }
+
+        rootContainer.addView(
+            wifiButton,
+            wifiButtonParams
+        )
+
         setContentView(rootContainer)
 
-        // إعدادات WebView
+        // إبقاء الزر فوق WebView
+        wifiButton.bringToFront()
+
         webView.settings.apply {
+
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
@@ -60,59 +112,69 @@ class MainActivity : AppCompatActivity() {
             loadWithOverviewMode = true
             useWideViewPort = true
 
-            cacheMode = WebSettings.LOAD_DEFAULT
+            cacheMode =
+                WebSettings.LOAD_DEFAULT
 
-            javaScriptCanOpenWindowsAutomatically = true
-            mediaPlaybackRequiresUserGesture = false
+            javaScriptCanOpenWindowsAutomatically =
+                true
 
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            mediaPlaybackRequiresUserGesture =
+                false
+
+            mixedContentMode =
+                WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
-        webView.webViewClient = WebViewClient()
+        webView.webViewClient =
+            WebViewClient()
 
         // دعم الفيديو Full Screen
-        webView.webChromeClient = object : WebChromeClient() {
+        webView.webChromeClient =
+            object : WebChromeClient() {
 
-            override fun onShowCustomView(
-                view: View?,
-                callback: CustomViewCallback?
-            ) {
-                if (view == null) {
-                    callback?.onCustomViewHidden()
-                    return
-                }
+                override fun onShowCustomView(
+                    view: View?,
+                    callback: CustomViewCallback?
+                ) {
 
-                if (customView != null) {
-                    callback?.onCustomViewHidden()
-                    return
-                }
+                    if (view == null) {
+                        callback?.onCustomViewHidden()
+                        return
+                    }
 
-                customView = view
-                customViewCallback = callback
+                    if (customView != null) {
+                        callback?.onCustomViewHidden()
+                        return
+                    }
 
-                // إخفاء WebView أثناء ملء الشاشة
-                webView.visibility = View.GONE
+                    customView = view
+                    customViewCallback = callback
 
-                // إضافة مشغل الفيديو فوق WebView
-                rootContainer.addView(
-                    view,
-                    FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                    // إخفاء الموقع والزر أثناء Full Screen
+                    webView.visibility =
+                        View.GONE
+
+                    wifiButton.visibility =
+                        View.GONE
+
+                    rootContainer.addView(
+                        view,
+                        FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
                     )
-                )
 
-                // تحويل الشاشة إلى الوضع الأفقي
-                requestedOrientation =
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                    requestedOrientation =
+                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
-                hideSystemUI()
+                    hideSystemUI()
+                }
+
+                override fun onHideCustomView() {
+                    exitFullScreen()
+                }
             }
-
-            override fun onHideCustomView() {
-                exitFullScreen()
-            }
-        }
 
         // تنزيل الصور والفيديوهات والملفات
         webView.setDownloadListener {
@@ -122,28 +184,44 @@ class MainActivity : AppCompatActivity() {
                 mimeType,
                 _ ->
 
-try {
-                val request = DownloadManager.Request(Uri.parse(url))
+            try {
+
+                val request =
+                    DownloadManager.Request(
+                        Uri.parse(url)
+                    )
 
                 val cookies =
-                    CookieManager.getInstance().getCookie(url)
+                    CookieManager
+                        .getInstance()
+                        .getCookie(url)
 
                 if (!cookies.isNullOrEmpty()) {
-                    request.addRequestHeader("Cookie", cookies)
+                    request.addRequestHeader(
+                        "Cookie",
+                        cookies
+                    )
                 }
 
                 if (!userAgent.isNullOrEmpty()) {
-                    request.addRequestHeader("User-Agent", userAgent)
+                    request.addRequestHeader(
+                        "User-Agent",
+                        userAgent
+                    )
                 }
 
-                val fileName = URLUtil.guessFileName(
-                    url,
-                    contentDisposition,
-                    mimeType
-                )
+                val fileName =
+                    URLUtil.guessFileName(
+                        url,
+                        contentDisposition,
+                        mimeType
+                    )
 
                 request.setTitle(fileName)
-                request.setDescription("جاري تنزيل الملف...")
+
+                request.setDescription(
+                    "جاري تنزيل الملف..."
+                )
 
                 request.setNotificationVisibility(
                     DownloadManager.Request
@@ -159,13 +237,20 @@ try {
                     request.setMimeType(mimeType)
                 }
 
-              val referer = webView.url
-if (!referer.isNullOrEmpty()) {
-    request.addRequestHeader("Referer", referer)
-}  
-    val downloadManager =
-                    getSystemService(Context.DOWNLOAD_SERVICE)
-                            as DownloadManager
+                val referer =
+                    webView.url
+
+                if (!referer.isNullOrEmpty()) {
+                    request.addRequestHeader(
+                        "Referer",
+                        referer
+                    )
+                }
+
+                val downloadManager =
+                    getSystemService(
+                        Context.DOWNLOAD_SERVICE
+                    ) as DownloadManager
 
                 downloadManager.enqueue(request)
 
@@ -176,6 +261,7 @@ if (!referer.isNullOrEmpty()) {
                 ).show()
 
             } catch (e: Exception) {
+
                 Toast.makeText(
                     this,
                     "تعذر تنزيل الملف: ${e.message}",
@@ -186,25 +272,31 @@ if (!referer.isNullOrEmpty()) {
 
         // فتح الموقع
         if (savedInstanceState == null) {
-            webView.loadUrl("http://e7.net:888/")
+
+            webView.loadUrl(
+                "http://e7.net:888/"
+            )
+
         } else {
-            webView.restoreState(savedInstanceState)
+
+            webView.restoreState(
+                savedInstanceState
+            )
         }
 
         // زر الرجوع
         onBackPressedDispatcher.addCallback(
             this,
-            object : OnBackPressedCallback(true) {
+            object :
+                OnBackPressedCallback(true) {
 
                 override fun handleOnBackPressed() {
 
-                    // إذا كان الفيديو Full Screen
                     if (customView != null) {
                         exitFullScreen()
                         return
                     }
 
-                    // الرجوع داخل الموقع
                     if (webView.canGoBack()) {
                         webView.goBack()
                     } else {
@@ -215,10 +307,11 @@ if (!referer.isNullOrEmpty()) {
         )
     }
 
-    // إخفاء أشرطة النظام أثناء الفيديو
     @Suppress("DEPRECATION")
     private fun hideSystemUI() {
+
         window.decorView.systemUiVisibility =
+
             View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
@@ -227,32 +320,43 @@ if (!referer.isNullOrEmpty()) {
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
-    // الخروج من Full Screen
     @Suppress("DEPRECATION")
     private fun exitFullScreen() {
 
-        val view = customView ?: return
+        val view =
+            customView ?: return
 
         rootContainer.removeView(view)
 
         customView = null
 
-        customViewCallback?.onCustomViewHidden()
+        customViewCallback
+            ?.onCustomViewHidden()
+
         customViewCallback = null
 
-        webView.visibility = View.VISIBLE
+        webView.visibility =
+            View.VISIBLE
 
-        // العودة للوضع العمودي
+        // إعادة إظهار زر WiFi
+        wifiButton.visibility =
+            View.VISIBLE
+
+        wifiButton.bringToFront()
+
         requestedOrientation =
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
 
-        // إعادة أشرطة النظام
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_VISIBLE
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
+    override fun onSaveInstanceState(
+        outState: Bundle
+    ) {
+
         webView.saveState(outState)
+
         super.onSaveInstanceState(outState)
     }
 
